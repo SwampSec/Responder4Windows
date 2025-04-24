@@ -115,6 +115,51 @@ Due to Windows security architecture, the following ports may not be bindable:
 | `README.md`            | This file |
 | `interfaces.txt`       | Temp output of interface scan |
 | `.gitignore`           | Excludes logs, cache, pyc files |
+| `windows_tools/`         | Windows-compatible versions of auxiliary tools |
+
+---
+## 🧰 Windows-Compatible Tools (`/Windows_tools`)
+
+This folder contains patched and enhanced versions of Responder and Impacket scripts originally designed for Linux. These versions are rewritten or adapted to run natively on Windows 10/11 without WSL.
+
+Each script in this folder is named with a `_Windows.py` suffix and is tailored for use in offensive security assessments where Windows hosts are the primary toolset.
+
+---
+
+### 📁 Script List & Descriptions
+
+| Script                     | Status      | Description                                                                 |
+|----------------------------|-------------|-----------------------------------------------------------------------------|
+| `RunFinger_Windows.py`     | ✅ Complete | Enumerates MSRPC endpoint UUIDs over TCP/135 using Impacket. Adds CIDR support and CSV export. |
+| `FindSQLSrv_Windows.py`    | 🛠️ Planned  | SQL Server broadcast discovery using Windows-safe UDP broadcast (port 1434). |
+| `DNSUpdate_Windows.py`     | 🛠️ Planned  | Sends spoofed DNS updates with modified socket usage for Windows.           |
+| `MultiRelay_Windows.py`    | 🔬 Planned  | NTLM relay framework over HTTP/LDAP. SMB features disabled for Windows compatibility. |
+| `SMBFinger_Windows.py`     | 🔬 Planned  | SMB enumeration using Impacket SMBConnection, replacing Linux tools like `smbclient`. |
+| `Netview_Windows.py`       | 🛠️ Planned  | NetBIOS and DNS hostname enumeration without `nmblookup`.                   |
+
+---
+
+### 🛠️ Feature Enhancements Across Tools
+
+- Replaced Linux-only socket options with cross-platform code
+- Removed raw socket dependencies (unsupported in Windows)
+- Replaced CLI parsing with `argparse` for usability
+- CSV export support for report writing
+- Graceful error handling for offline hosts or blocked ports
+- CIDR and list-based input support for easier mass-scanning
+
+---
+
+### 💡 Usage Example
+
+```powershell
+python windows_tools\\RunFinger_Windows.py -i 192.168.1.0/24 --csv output.csv
+```
+
+---
+
+> All original scripts remain in place under their default names.  
+> This folder is intended for pentesters, red teamers, or lab researchers who prefer or require a Windows-native toolchain.
 
 ---
 
@@ -219,4 +264,4 @@ Major sponsors of the original project:
 You may redistribute or modify under the same terms.
 
 Original project: https://github.com/lgandx/Responder  
-This fork: https://github.com/ /Responder4Windows
+This fork: https://github.com/SwampSec/Responder4Windows
