@@ -20,6 +20,7 @@ if (sys.version_info > (3, 0)):
 else:
 	import ConfigParser
 import subprocess
+import os, socket, platform
 
 from utils import *
 
@@ -349,37 +350,93 @@ class Settings:
 			#If it's the first time, generate SSL certs for this Responder session and send openssl output to /dev/null
 			Certs = os.system(self.ResponderPATH+"/certs/gen-self-signed-cert.sh >/dev/null 2>&1")
 		
-		try:
-			NetworkCard = subprocess.check_output(["ifconfig", "-a"])
-		except:
-			try:
-				NetworkCard = subprocess.check_output(["ip", "address", "show"])
-			except subprocess.CalledProcessError as ex:
-				NetworkCard = "Error fetching Network Interfaces:", ex
-				pass
-		try:
-			p = subprocess.Popen('resolvectl', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			DNS = p.stdout.read()
-		except:
-			p = subprocess.Popen(['cat', '/etc/resolv.conf'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			DNS = p.stdout.read()
+#		try:
+#			NetworkCard = subprocess.check_output(["ifconfig", "-a"])
+#		except:
+#			try:
+#				NetworkCard = subprocess.check_output(["ip", "address", "show"])
+#			except subprocess.CalledProcessError as ex:
+#				NetworkCard = "Error fetching Network Interfaces:", ex
+#				pass
+#		try:
+#			p = subprocess.Popen('resolvectl', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+#			DNS = p.stdout.read()
+#		except:
+#			p = subprocess.Popen(['cat', '/etc/resolv.conf'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+#			DNS = p.stdout.read()
+#
+#		try:
+#			RoutingInfo = subprocess.check_output(["netstat", "-rn"])
+#		except:
+#			try:
+#				RoutingInfo = subprocess.check_output(["ip", "route", "show"])
+#			except subprocess.CalledProcessError as ex:
+#				RoutingInfo = "Error fetching Routing information:", ex
+#				pass
+#
+#		Message = "%s\nCurrent environment is:\nNetwork Config:\n%s\nDNS Settings:\n%s\nRouting info:\n%s\n\n"%(utils.HTTPCurrentDate(), NetworkCard.decode('latin-1'),DNS.decode('latin-1'),RoutingInfo.decode('latin-1'))
+#		try:
+#			utils.DumpConfig(self.ResponderConfigDump, Message)
+#			#utils.DumpConfig(self.ResponderConfigDump,str(self))
+#		except AttributeError as ex:
+#			print("Missing Module:", ex)
+#			pass
 
 		try:
-			RoutingInfo = subprocess.check_output(["netstat", "-rn"])
+			if platform.system() == "Windows":
+				NetworkCard = subprocess.check_output("ipconfig", shell=True)
+			else:
+				NetworkCard = subprocess.check_output(["ifconfig", "-a"])
 		except:
 			try:
-				RoutingInfo = subprocess.check_output(["ip", "route", "show"])
+				if platform.system() == "Windows":
+					NetworkCard = subprocess.check_output("ipconfig", shell=True)
+				else:
+					NetworkCard = subprocess.check_output(["ip", "address", "show"])
 			except subprocess.CalledProcessError as ex:
-				RoutingInfo = "Error fetching Routing information:", ex
-				pass
+				NetworkCard = b"Error fetching Network Interfaces: " + str(ex).encode()
 
-		Message = "%s\nCurrent environment is:\nNetwork Config:\n%s\nDNS Settings:\n%s\nRouting info:\n%s\n\n"%(utils.HTTPCurrentDate(), NetworkCard.decode('latin-1'),DNS.decode('latin-1'),RoutingInfo.decode('latin-1'))
+		try:
+			if platform.system() == "Windows":
+				DNS = subprocess.check_output("ipconfig /all", shell=True)
+			else:
+				p = subprocess.Popen(['resolvectl'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+				DNS = p.stdout.read()
+		except:
+			try:
+				if platform.system() != "Windows":
+					p = subprocess.Popen(['cat', '/etc/resolv.conf'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+					DNS = p.stdout.read()
+				else:
+					DNS = b"Error fetching DNS on Windows"
+			except:
+				DNS = b"DNS fetch failed"
+
+		try:
+			if platform.system() == "Windows":
+				RoutingInfo = subprocess.check_output("route print", shell=True)
+			else:
+				RoutingInfo = subprocess.check_output(["netstat", "-rn"])
+		except:
+			try:
+				if platform.system() != "Windows":
+					RoutingInfo = subprocess.check_output(["ip", "route", "show"])
+				else:
+					RoutingInfo = b"Routing fetch failed"
+			except subprocess.CalledProcessError as ex:
+				RoutingInfo = b"Error fetching Routing information: " + str(ex).encode()
+
+		Message = "%s\nCurrent environment is:\nNetwork Config:\n%s\nDNS Settings:\n%s\nRouting info:\n%s\n\n" % (
+			utils.HTTPCurrentDate(),
+			NetworkCard.decode('latin-1', errors='ignore'),
+			DNS.decode('latin-1', errors='ignore'),
+			RoutingInfo.decode('latin-1', errors='ignore')
+		)
+
 		try:
 			utils.DumpConfig(self.ResponderConfigDump, Message)
-			#utils.DumpConfig(self.ResponderConfigDump,str(self))
 		except AttributeError as ex:
 			print("Missing Module:", ex)
-			pass
 
 def init():
 	global Config

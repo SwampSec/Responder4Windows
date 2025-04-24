@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [v1.1-win] - 2025-04-22
+### Added
+- Created interactive `ResponderLauncher.bat` with:
+  - Administrator privilege detection and elevation
+  - Auto IP/interface detection using PowerShell
+  - User prompt to select network interface for binding
+- Added PowerShell and batch hybrid support for interface selection
+- Improved user experience and resilience in mixed adapter environments
+
+### Changed
+- Updated `settings.py` to replace Linux networking commands:
+  - `ifconfig`, `ip`, `resolvectl`, `netstat` → `ipconfig`, `route print`, etc.
+- Rewrote Linux `geteuid()` check to support Windows admin detection
+- Improved IP parsing logic and compatibility with Python 3.13
+
+### Documentation
+- Overhauled `README.md` with:
+  - Windows setup instructions
+  - Feature overview
+  - Known limitations on Windows
+  - Acknowledgments and licensing
+
+<!-- insertion marker -->
+
+## [v1.0-win] - Initial Port
+### Added
+- Initial functional patch for `Responder.py` and `settings.py` to run on Windows
+- Compatibility with Python 3.x
+- Manual launcher script for static IP testing
+- Replaced Linux-only subprocess calls with Windows-safe fallbacks
+- Initial `.gitignore`, basic instructions, and ZIP package for personal use
+
+<!-- insertion marker -->
 ## Unreleased
 
 <small>[Compare with latest](https://github.com/lgandx/Responder/compare/v3.1.4.0...HEAD)</small>

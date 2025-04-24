@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import optparse
 import ssl
+import platform
+
 try:
 	from SocketServer import TCPServer, UDPServer, ThreadingMixIn
 except:
@@ -49,9 +51,13 @@ parser.add_option('-t','--ttl',            action="store",      help="Change the
 parser.add_option('-N', '--AnswerName',	   action="store",      help="Specifies the canonical name returned by the LLMNR poisoner in tits Answer section. By default, the answer's canonical name is the same as the query. Changing this value is mainly useful when attempting to perform Kebreros relaying over HTTP.", dest="AnswerName", default=None)
 options, args = parser.parse_args()
 
-if not os.geteuid() == 0:
-    print(color("[!] Responder must be run as root."))
-    sys.exit(-1)
+#if not os.geteuid() == 0:
+#    print(color("[!] Responder must be run as root."))
+#    sys.exit(-1)
+if platform.system() != "Windows":
+	if not hasattr(os, 'getuid') or not os.geteuid() == 0:
+		print(color("[!] Responder must be run as root."))
+		sys.exit(-1)
 elif options.OURIP == None and IsOsX() == True:
     print("\n\033[1m\033[31mOSX detected, -i mandatory option is missing\033[0m\n")
     parser.print_help()

@@ -1,231 +1,192 @@
-# Responder/MultiRelay #
+# Responder4Windows
 
-IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner and NTLMv1/2 Relay.
+> A customized version of [Responder](https://github.com/lgandx/Responder) built to run natively on **Windows 10/11**. Includes Windows compatibility patches, an auto-elevating interface selector, and support for Python 3.x. Fully usable without WSL or Linux.
 
-Author: Laurent Gaffie <laurent.gaffie@gmail.com >  https://g-laurent.blogspot.com
+---
 
+## 🔧 Project Background
 
+Responder is a LLMNR, NBT-NS and mDNS poisoner that can capture and relay NTLM credentials in internal networks. This edition is modified for Windows use and includes enhancements for portability, reliability, and ease of use on modern systems.
 
-## Intro ##
+---
 
-Responder is an LLMNR, NBT-NS and MDNS poisoner. 
+## 🩛 Windows-Specific Enhancements
 
-## Features ##
+- ✅ Replaced Linux-only commands in `settings.py` with Windows equivalents:
+  - `ifconfig` → `ipconfig`
+  - `netstat` → `route print`
+  - `resolvectl` → `ipconfig /all`
+- ✅ Rewrote root check (`os.geteuid`) to detect **Administrator** on Windows
+- ✅ `ResponderLauncher.bat`:
+  - Auto-elevates to Administrator
+  - Auto-detects active interfaces and IPs
+  - Prompts user to select interface
+- ✅ Python 3.13+ compatible
 
-- Dual IPv6/IPv4 stack.
+---
 
-- Built-in SMB Auth server.
-	
-Supports NTLMv1, NTLMv2 hashes with Extended Security NTLMSSP by default. Successfully tested from Windows 95 to Server 2022, Samba and Mac OSX Lion. Clear text password is supported for NT4, and LM hashing downgrade when the --lm option is set. If --disable-ess is set, extended session security will be disabled for NTLMv1 authentication. SMBv2 has also been implemented and is supported by default.
+## 🚀 How to Use
 
-- Built-in MSSQL Auth server.
+### 📦 Prerequisites
 
-This server supports NTLMv1, LMv2 hashes. This functionality was successfully tested on Windows SQL Server 2005, 2008, 2012, 2019.
+- ✅ Install [Python 3.x for Windows](https://www.python.org/downloads/)
+- ✅ Required packages:
+  ```powershell
+  pip install netifaces pycryptodome
+  ```
 
-- Built-in HTTP Auth server.
+### ▶️ Launch
 
-This server supports NTLMv1, NTLMv2 hashes *and* Basic Authentication. This server was successfully tested on IE 6 to IE 11, Edge, Firefox, Chrome, Safari.
+```cmd
+ResponderLauncher.bat
+```
 
-Note: This module also works for WebDav NTLM authentication issued from Windows WebDav clients (WebClient). You can now send your custom files to a victim.
+- Auto-elevates as Administrator
+- Prompts for an active interface
+- Launches Responder with selected IP
 
-- Built-in HTTPS Auth server.
+Or run manually:
+```powershell
+python responder.py -I ALL -i <your-ip> -v
+```
 
-Same as above. The folder certs/ contains 2 default keys, including a dummy private key. This is *intentional*, the purpose is to have Responder working out of the box. A script was added in case you need to generate your own self signed key pair.
+---
 
-- Built-in LDAP Auth server.
+## 💡 Example Output
 
-This server supports NTLMSSP hashes and Simple Authentication (clear text authentication). This server was successfully tested on Windows Support tool "ldp" and LdapAdmin.
+```
+[*] Detecting network interfaces...
+  [1] Wi-Fi - 10.88.88.98
+  [2] Ethernet - 192.168.1.74
+  [3] VPN - 172.16.0.2
+[*] Select an interface number to use for Responder:
+```
 
-- Built-in DCE-RPC Auth server.
+---
 
-This server supports NTLMSSP hashes. This server was successfully tested on Windows XP to Server 2019.
+## ⚠️ Known Limitations on Windows
 
-- Built-in FTP, POP3, IMAP, SMTP Auth servers.
+Due to Windows security architecture, the following ports may not be bindable:
+- `135`, `445`, `5355`, `5353`, `5986`, `443`, `636`
 
-This modules will collect clear text credentials.
+➡️ These services are usually owned by Windows services (SMB, DNS Client, WinRM).  
+➡️ You may still run HTTP, FTP, DNS, SQL, Kerberos, LDAP, etc.
 
-- Built-in DNS server.
+---
 
-This server will answer type SRV and A queries. This is really handy when it's combined with ARP spoofing. 
+## 📁 File Structure
 
-- Built-in WPAD Proxy Server.
+| File | Description |
+|------|-------------|
+| `Responder.py`         | Patched Python script for Windows |
+| `settings.py`          | Rewritten to use Windows-compatible commands |
+| `ResponderLauncher.bat`| Launcher with admin + IP/interface selector |
+| `README.md`            | This file |
+| `interfaces.txt`       | Temp output of interface scan |
+| `.gitignore`           | Excludes logs, cache, pyc files |
 
-This module will capture all HTTP requests from anyone launching Internet Explorer on the network if they have "Auto-detect settings" enabled. This module is highly effective. You can configure your custom PAC script in Responder.conf and inject HTML into the server's responses. See Responder.conf.
+---
 
-- Browser Listener
+## 🧠 Advanced Module Details (from Original Responder)
 
-This module allows to find the PDC in stealth mode.
+> ⚠️ Some features may not work on Windows. Full support available in Linux environments.
 
-- Icmp Redirect
+### ✅ Auth Servers
 
-    python tools/Icmp-Redirect.py
+- **SMB**: Supports NTLMv1/v2, LM downgrade (`--lm`) and ESS bypass (`--disable-ess`)  
+  ❌ *Not functional on Windows due to port 445 binding*
+- **MSSQL**: Captures hashes over TCP 1433  
+- **HTTP/HTTPS**: NTLM + Basic auth capture; supports WebDAV  
+- **LDAP/LDAPS**: Captures NTLM or cleartext auth over 389/636  
+- **DCE-RPC, RDP, WinRM**: Useful for legacy services  
+  ⚠️ *Some may not bind on Windows due to system conflicts*
+- **FTP/IMAP/SMTP/POP3**: Captures cleartext login attempts
+- **DNS (UDP 53)**: Answers A/SRV records, useful with spoofing
 
-For MITM on Windows XP/2003 and earlier Domain members. This attack combined with the DNS module is pretty effective.
+---
 
-- Rogue DHCP
+## 🔨 Additional Tools (Mostly Linux Only)
 
-    python tools/DHCP.py
+- `tools/DHCP.py`: Rogue DHCP server (inject DNS + WPAD)
+- `tools/Icmp-Redirect.py`: ICMP MITM attack for legacy hosts
+- `tools/RunFinger.py`: RPC endpoint mapper
+- Passive mode (`--analyze`) logs LLMNR/NBT-NS/MDNS queries silently
 
-DHCP Inform Spoofing. Allows you to let the real DHCP Server issue IP addresses, and then send a DHCP Inform answer to set your IP address as a primary DNS server, and your own WPAD URL. To inject a DNS server, domain, route on all Windows version and any linux box, use -R
+---
 
-- Analyze mode.
+## 📜 CLI Reference
 
-This module allows you to see NBT-NS, BROWSER, LLMNR, DNS requests on the network without poisoning any responses. Also, you can map domains, MSSQL servers, workstations passively, see if ICMP Redirects attacks are plausible on your subnet. 
+```bash
+-A, --analyze           Analyze mode (no poisoning)
+-I, --interface=IFACE   Interface to use (e.g., ALL, eth0, etc.)
+-i, --ip=ADDR           Local IP to use
+-d, --DHCP              Rogue DHCP server (requires Linux)
+-D, --DHCP-DNS          Inject DNS server into DHCP response
+-w, --wpad              Start WPAD rogue proxy server
+-F, --ForceWpadAuth     Force auth on WPAD (can trigger login prompts)
+-P, --ProxyAuth         Transparent NTLM auth relay via proxy
+--lm                    Force LM hash downgrade
+--disable-ess           Disable Extended Session Security for NTLMv1
+--externalip=IP         Poison with a spoofed IP
+-v                      Verbose mode
+-Q, --quiet             Quiet output
+-t TTLVAL               Set TTL for poisoned responses
+-N ANSWERNAME           Set fake hostname in LLMNR responses
+```
 
-## Hashes ##
+---
 
-All hashes are printed to stdout and dumped in a unique John Jumbo compliant file, using this format:
+## 🔎 Hash Logging & Output
 
-    (MODULE_NAME)-(HASH_TYPE)-(CLIENT_IP).txt
+- Captured hashes: `logs/` folder
+- Log files:
+  - `Responder-Session.log`
+  - `Analyzer-Session.log`
+  - `Poisoners-Session.log`
+- Hash format: `MODULE-HASHTYPE-IP.txt`
+- SQLite backend enabled via `Responder.conf`
 
-Log files are located in the "logs/" folder. Hashes will be logged and printed only once per user per hash type, unless you are using the Verbose mode (-v).
+---
 
-- Responder will log all its activity to Responder-Session.log
-- Analyze mode will be logged to Analyzer-Session.log
-- Poisoning will be logged to Poisoners-Session.log
+## 📌 Usage Example
 
-Additionally, all captured hashed are logged into an SQLite database which you can configure in Responder.conf
+```bash
+python responder.py -I ALL -i 192.168.1.100 -v
+```
 
+---
 
-## Considerations ##
+## ✍️ Configuration
 
-- This tool listens on several ports: UDP 137, UDP 138, UDP 53, UDP/TCP 389,TCP 1433, UDP 1434, TCP 80, TCP 135, TCP 139, TCP 445, TCP 21, TCP 3141,TCP 25, TCP 110, TCP 587, TCP 3128, Multicast UDP 5355 and 5353.
+Edit `Responder.conf` to:
+- Enable/disable modules
+- Set WPAD PAC URLs
+- Define TTL, server names, exclusions
 
-- If you run Samba on your system, stop smbd and nmbd and all other services listening on these ports.
+---
 
-- For Ubuntu users:
+## 🤝 Acknowledgments
 
-Edit this file /etc/NetworkManager/NetworkManager.conf and comment the line: `dns=dnsmasq`. Then kill dnsmasq with this command (as root): `killall dnsmasq -9`
+Original author: **Laurent Gaffié**  
+Maintainer site: https://g-laurent.blogspot.com  
+Maintained by: **Haven6 Inc. (Responder4Windows fork)**
 
-- Any rogue server can be turned off in Responder.conf.
+Major sponsors of the original project:
+- [SecureWorks](https://www.secureworks.com/)
+- [Synacktiv](https://www.synacktiv.com/)
+- [Black Hills Information Security](https://www.blackhillsinfosec.com/)
+- [TrustedSec](https://www.trustedsec.com/)
+- [Red Siege InfoSec](https://www.redsiege.com/)
+- [Open-Sec](http://www.open-sec.com/)
+- And all the individual pentesters who donated
 
-- This tool is not meant to work on Windows.
 
-- For OSX, please note: Responder must be launched with an IP address for the -i flag (e.g. -i YOUR_IP_ADDR). There is no native support in OSX for custom interface binding. Using -i en1 will not work. Also to run Responder with the best experience, run the following as root:
+---
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.Kerberos.kdc.plist
+## 📜 License
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
+**Responder** is licensed under the GNU General Public License v3.0.  
+You may redistribute or modify under the same terms.
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.smbd.plist
-
-    launchctl unload /System/Library/LaunchDaemons/com.apple.netbiosd.plist
-
-## Usage ##
-
-First of all, please take a look at Responder.conf and tweak it for your needs.
-
-Running the tool:
-
-    ./Responder.py [options]
-
-Typical Usage Example:
-
-    ./Responder.py -I eth0 -Pv
-
-Options:
-
-    --version             show program's version number and exit
-    -h, --help            show this help message and exit
-    -A, --analyze         Analyze mode. This option allows you to see NBT-NS,
-                        BROWSER, LLMNR requests without responding.
-    -I eth0, --interface=eth0
-                        Network interface to use, you can use 'ALL' as a
-                        wildcard for all interfaces
-    -i 10.0.0.21, --ip=10.0.0.21
-                        Local IP to use (only for OSX)
-    -6 2002:c0a8:f7:1:3ba8:aceb:b1a9:81ed, --externalip6=2002:c0a8:f7:1:3ba8:aceb:b1a9:81ed
-                        Poison all requests with another IPv6 address than
-                        Responder's one.
-    -e 10.0.0.22, --externalip=10.0.0.22
-                        Poison all requests with another IP address than
-                        Responder's one.
-    -b, --basic           Return a Basic HTTP authentication. Default: NTLM
-    -d, --DHCP            Enable answers for DHCP broadcast requests. This
-                        option will inject a WPAD server in the DHCP response.
-                        Default: False
-    -D, --DHCP-DNS        This option will inject a DNS server in the DHCP
-                        response, otherwise a WPAD server will be added.
-                        Default: False
-    -w, --wpad            Start the WPAD rogue proxy server. Default value is
-                        False
-    -u UPSTREAM_PROXY, --upstream-proxy=UPSTREAM_PROXY
-                        Upstream HTTP proxy used by the rogue WPAD Proxy for
-                        outgoing requests (format: host:port)
-    -F, --ForceWpadAuth   Force NTLM/Basic authentication on wpad.dat file
-                        retrieval. This may cause a login prompt. Default:
-                        False
-    -P, --ProxyAuth       Force NTLM (transparently)/Basic (prompt)
-                        authentication for the proxy. WPAD doesn't need to be
-                        ON. This option is highly effective. Default: False
-    -Q, --quiet           Tell Responder to be quiet, disables a bunch of
-                        printing from the poisoners. Default: False
-    --lm                  Force LM hashing downgrade for Windows XP/2003 and
-                        earlier. Default: False
-    --disable-ess         Force ESS downgrade. Default: False
-    -v, --verbose         Increase verbosity.
-    -t 1e, --ttl=1e       Change the default Windows TTL for poisoned answers.
-                        Value in hex (30 seconds = 1e). use '-t random' for
-                        random TTL
-    -N ANSWERNAME, --AnswerName=ANSWERNAME
-                        Specifies the canonical name returned by the LLMNR
-                        poisoner in tits Answer section. By default, the
-                        answer's canonical name is the same as the query.
-                        Changing this value is mainly useful when attempting
-                        to perform Kebreros relaying over HTTP.
-
-
-## Donation ##
-
-You can contribute to this project by donating to the following $XLM (Stellar Lumens) address:
-
-"GCGBMO772FRLU6V4NDUKIEXEFNVSP774H2TVYQ3WWHK4TEKYUUTLUKUH"
-
-Paypal:
-
-https://paypal.me/PythonResponder
-
-
-## Acknowledgments ##
-
-Late Responder development has been possible because of the donations received from individuals and companies.
-
-We would like to thanks those major sponsors:
-
-- SecureWorks: https://www.secureworks.com/
-
-- Synacktiv: https://www.synacktiv.com/
-
-- Black Hills Information Security: http://www.blackhillsinfosec.com/
-
-- TrustedSec: https://www.trustedsec.com/
-
-- Red Siege Information Security: https://www.redsiege.com/
-
-- Open-Sec: http://www.open-sec.com/
-
-- And all, ALL the pentesters around the world who donated to this project.
-
-Thank you.
-
-
-## Copyright ##
-
-NBT-NS/LLMNR Responder
-
-Responder, a network take-over set of tools created and maintained by Laurent Gaffie.
-
-email: laurent.gaffie@gmail.com
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+Original project: https://github.com/lgandx/Responder  
+This fork: https://github.com/ /Responder4Windows
