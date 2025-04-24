@@ -29,11 +29,42 @@ Responder is a LLMNR, NBT-NS and mDNS poisoner that can capture and relay NTLM c
 
 ### 📦 Prerequisites
 
-- ✅ Install [Python 3.x for Windows](https://www.python.org/downloads/)
-- ✅ Required packages:
-  ```powershell
-  pip install netifaces pycryptodome
-  ```
+Before running Responder4Windows, ensure the following are installed:
+
+#### ✅ Required Software
+
+- [Python 3.x for Windows](https://www.python.org/downloads/)
+- Git for Windows (optional, but helpful for updates)
+
+#### ✅ Python Dependencies
+
+Install all required packages using:
+
+```powershell
+pip install -r requirements.txt
+```
+
+Or individually:
+
+```powershell
+pip install netifaces pycryptodome colorama six impacket psutil tabulate
+```
+
+#### 🧾 `requirements.txt` contents:
+
+```
+netifaces
+pycryptodome
+colorama
+six
+impacket
+psutil
+tabulate
+```
+
+> 💡 If you plan to use patched Responder tools like `RunFinger.py`, `FindSQLSrv.py`, or Impacket-based scripts like `secretsdump.py`, the full list is strongly recommended.
+
+---
 
 ### ▶️ Launch
 
