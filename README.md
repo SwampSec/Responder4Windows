@@ -167,11 +167,10 @@ Edit `Responder.conf` to:
 
 ## 🤝 Acknowledgments
 
-Original author: **Laurent Gaffié**  
-Maintainer site: https://g-laurent.blogspot.com  
-Maintained by: **Haven6 Inc. (Responder4Windows fork)**
+Windows version author: **Ryan Soper**
 
 Major sponsors of the original project:
+- [Laurent Gaffié](https://g-laurent.blogspot.com)
 - [SecureWorks](https://www.secureworks.com/)
 - [Synacktiv](https://www.synacktiv.com/)
 - [Black Hills Information Security](https://www.blackhillsinfosec.com/)
