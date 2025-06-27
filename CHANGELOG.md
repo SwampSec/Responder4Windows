@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [v1.2-win] - 2025-04-23
+
+### Added
+- Windows_tools/ folder created for portable auxiliary tools
+- RunFinger_Windows.py - MSRPC endpoint mapper
+- FindSQLSrv_Windows.py - SQL Server UDP broadcast scanner
+- DNSUpdate_Windows.py - DNS record management via LDAP
+- MultiRelay_Windows_Lite.py - Lightweight NTLM capture and relay
+- Ntlm_Type2_Generator.py - NTLMSSP Challenge generator for PCAP crafting
+
+### Changed
+- README.md updated with Windows_tools section
+- Added full documentation under Windows_tools/README.md
+
+
+<!-- insertion marker -->
+## [v1.1-win] - 2025-04-22
+### Added
+- `RunFinger_Windows.py`: Added pre-check for TCP port 135 to verify if target host allows RPC connections before scanning.
+- Improved host classification: Hosts are now labeled as "offline" only if port 135 is closed or filtered. Hosts that respond but expose no UUIDs are correctly marked as "online".
+
+### Fixed
+- Removed deprecated import from `impacket.uuid` which caused `ImportError` in newer versions of Impacket.
+
+### Notes
+- This update improves accuracy of scan results, especially in environments with restrictive firewalls or client isolation.
+
+<!-- insertion marker -->
 ## [v1.1-win] - 2025-04-22
 ### Added
 - Created interactive `ResponderLauncher.bat` with:

@@ -137,6 +137,42 @@ Each script in this folder is named with a `_Windows.py` suffix and is tailored 
 | `SMBFinger_Windows.py`     | 🔬 Planned  | SMB enumeration using Impacket SMBConnection, replacing Linux tools like `smbclient`. |
 | `Netview_Windows.py`       | 🛠️ Planned  | NetBIOS and DNS hostname enumeration without `nmblookup`.                   |
 
+### Scripts to Fix
+#### Minimal or Minor Tweaks Needed (Start Here)
+**Script / Tool | Description | Action Needed**
+- [x] RunFinger.py | MSRPC endpoint mapper via Impacket | ✅ Minor cleanup (path handling, verbosity)
+- [ ] netview.py (Impacket) | NetBIOS scanner | ✅ Update DNS logic, avoid nmblookup
+- [x] DNSUpdate.py | Sends DNS registration updates | ✅ Adjust socket binding, test for admin interface use
+- [x] FindSQLSrv.py | SQL Server discovery via broadcast | ✅ Replace broadcast socket logic
+
+#### Fully Fixable (Moderate Patching Required)
+**Script / Tool | Description | Action Needed**
+- [ ] ntlmrelayx.py | NTLM relay to SMB/HTTP/LDAP | ⚠️ Disable SMB relay, allow HTTP/LDAP-only
+- [ ] rdp_check.py (Impacket) | RDP CredSSP vulnerability check | ⚠️ Patch socket error handling for port 3389
+- [ ] SMBFinger/ | Finger SMB shares via smbclient, etc. | ⚠️ Rewrite using impacket.smbconnection
+- [x] MultiRelay.py | NTLM relay engine with custom modules | ⚠️ Strip SMB/server logic and isolate HTTP logic only
+
+#### Needs Major Rewrite
+**Script / Tool | Description | Action Needed**
+- [ ] MultiRelay/ | All custom relay modules + raw socket logic | ❌ Linux-only raw socket + multithread — needs full rearchitecture
+- [ ] Icmp-Redirect.py | Sends raw ICMP redirect packets | ❌ Requires raw socket perms → not supported on Windows
+- [ ] BrowserListener.py | NetBIOS datagram listener (port 138) | ❌ Not usable on Windows due to port/service conflicts
+
+#### Already Works (No Changes Needed)
+**Script / Tool | Description**
+- secretsdump.py | Dumps local/remote NTDS and SAM hashes
+- wmiexec.py | WMI remote command execution
+- smbexec.py | SMB-based service command exec
+- dcomexec.py | DCOM remote execution
+- psexec.py | PsExec-style SMB execution
+- ticketer.py | Kerberos TGT generator
+- getTGT.py | Get TGT from KDC
+- addcomputer.py | Add a computer to domain
+- GetUserSPNs.py | Kerberoasting via SPNs
+- lookupsid.py | SID brute-force and user enumeration
+- RunFingerPackets.py | Pure Python MSRPC packet templates
+- odict.py | OrderedDict shim used in legacy Python
+
 ---
 
 ### 🛠️ Feature Enhancements Across Tools
